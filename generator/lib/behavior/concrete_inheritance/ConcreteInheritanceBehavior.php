@@ -56,14 +56,15 @@ class ConcreteInheritanceBehavior extends Behavior
             if ($column->getName() == $this->getParameter('descendant_column')) {
                 continue;
             }
-            if ($table->containsColumn($column->getName())) {
-                continue;
+            if ($table->containsColumn($column->getName()) === false) {
+                $copiedColumn = clone $column;
+                if ($column->isAutoIncrement() && $this->isCopyData()) {
+                    $copiedColumn->setAutoIncrement(false);
+                }
+                $table->addColumn($copiedColumn);
+            } else {
+                $copiedColumn = $column;
             }
-            $copiedColumn = clone $column;
-            if ($column->isAutoIncrement() && $this->isCopyData()) {
-                $copiedColumn->setAutoIncrement(false);
-            }
-            $table->addColumn($copiedColumn);
             if ($column->isPrimaryKey() && $this->isCopyData()) {
                 $fk = new ForeignKey();
                 $fk->setForeignTableCommonName($column->getTable()->getCommonName());
@@ -268,3 +269,4 @@ public function getSyncParent(\$con = null)
 ";
     }
 }
+
